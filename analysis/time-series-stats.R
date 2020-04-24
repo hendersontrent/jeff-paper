@@ -1,6 +1,10 @@
 #-----------------------------------------
-# This script aims to produce the packages
-# and reusables needed to run the project
+# This script aims to load in 1 minute
+# bins data and produce time series
+# statistics
+#
+# NOTE: This script requires setup.R to
+# have been run first
 #-----------------------------------------
 
 #-----------------------------------------
