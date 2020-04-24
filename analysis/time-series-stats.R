@@ -1,0 +1,12 @@
+#-----------------------------------------
+# This script aims to produce the packages
+# and reusables needed to run the project
+#-----------------------------------------
+
+#-----------------------------------------
+# Author: Trent Henderson, 24 April 2020
+#-----------------------------------------
+
+# Load data
+
+
