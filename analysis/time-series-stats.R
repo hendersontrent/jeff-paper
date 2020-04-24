@@ -100,3 +100,53 @@ t2_auto_plot <- autocor_plot(t2_ts) +
 
 ggarrange(t1_auto_plot, t2_auto_plot,
           ncol = 2, nrow = 1)
+
+#----------------
+# GENERAL TREND
+#----------------
+
+# Define reusable cleaning function
+
+trend_cleaner <- function(data){
+  data <- data %>%
+    mutate(id = rownames(t1_mean)) %>%
+    dplyr::select(c(value, condition, id)) %>%
+    rename(minute = id) %>%
+    mutate(minute = as.character(minute)) %>%
+    mutate(minute = as.numeric(minute)) # Wrangle from id string form
+}
+
+# Join to put on one plot
+
+t1_mean_col <- t1_mean %>%
+  mutate(condition = "T1")
+
+t1_mean_col <- trend_cleaner(t1_mean_col)
+
+t2_mean_col <- t2_mean %>%
+  mutate(condition = "T2")
+
+t2_mean_col <- trend_cleaner(t2_mean_col)
+
+joined_ts <- bind_rows(t1_mean_col, t2_mean_col)
+
+# Plot
+
+gen_ts_plot <- joined_ts %>%
+  ggplot(aes(x = minute, y = value)) +
+  geom_line(aes(colour = condition), stat = "identity", size = 1.25) +
+  labs(title = "Mean value over time by condition",
+       x = "Minute",
+       y = "Value",
+       colour = "Condition") +
+  scale_x_continuous(breaks = seq(from = 1, to = 15, by = 1)) +
+  theme_bw() +
+  theme(legend.position = "bottom")
+print(gen_ts_plot)
+
+# Put on same page as autocorrelation plots
+
+ggarrange(gen_ts_plot,
+          ggarrange(t1_auto_plot, t2_auto_plot,
+                    ncol = 2),
+          nrow = 2)
