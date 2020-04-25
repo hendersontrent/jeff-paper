@@ -4,15 +4,8 @@
 .Ruserdata
 .Rproj
 
-data/*.xlsx
-data/*.csv
-data/*.pptx
-data/*.docx
-
 output/*.xlsx
 output/*.csv
-output/*.pptx
-output/*.docx
 *.pdf
 *.png
 *.pptx
