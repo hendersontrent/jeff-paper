@@ -129,6 +129,10 @@ df_prep <- bind_rows(df_t1_base, df_t1_med, df_t2_base, df_t2_med) %>%
   mutate(state = as.factor(state)) %>%
   mutate(condition = as.factor(condition))
 
+# Reorder to have condition and minute columns as the first two columns for plm index
+
+df_prep <- df_prep[,c(4,2,5,3,1)]
+
 #----------------BUILD PANEL REGRESSION MODEL------------
 
 model <- plm(value ~ state, 
