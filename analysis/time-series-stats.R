@@ -141,7 +141,8 @@ gen_ts_plot <- joined_ts %>%
        colour = "Condition") +
   scale_x_continuous(breaks = seq(from = 1, to = 15, by = 1)) +
   theme_bw() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        panel.grid.minor = element_blank())
 print(gen_ts_plot)
 
 # Put on same page as autocorrelation plots
