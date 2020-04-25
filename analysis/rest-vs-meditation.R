@@ -116,8 +116,31 @@ agg_plot <- merged_data %>%
        colour = "Condition") +
   scale_x_continuous(breaks = seq(from = 1, to = 15, by = 1)) +
   theme_bw() +
-  theme(legend.position = "bottom") +
+  theme(legend.position = "bottom",
+        panel.grid.minor = element_blank()) +
   facet_wrap(~timer)
+print(agg_plot)
+
+# Compute average percentage difference between meditation and rest for T1 and T2
+
+pct_calc <- function(v1, v2){
+  ((abs(v1-v2))/((v1+v2)/2))*100
+}
+
+pct_data <- merged_data %>%
+  group_by(timer, condition) %>%
+  summarise(avg_val = mean(value)) %>%
+  ungroup() %>%
+  spread(key = condition, value = avg_val) %>%
+  group_by(timer) %>%
+  mutate(pct_diff = round(pct_calc(Meditation, Rest), digits = 2)) %>%
+  ungroup()
+
+# Add to plot
+
+agg_plot <- agg_plot +
+  geom_text(data = pct_data, aes(x = 13, y = 5.1, label = paste0("Avg pct diff\nbetween rest &\nmed = ",pct_diff,"%")), 
+            colour = "#C77CFF")
 print(agg_plot)
 
 #----------------
