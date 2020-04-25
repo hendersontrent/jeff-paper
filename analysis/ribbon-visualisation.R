@@ -1,7 +1,6 @@
 #-----------------------------------------
-# This script aims to build a panel
-# regression model to understand time
-# series and experimental effects
+# This script aims to build a ribbon plot
+# to show variability over time
 #
 # NOTE: This script requires setup.R to
 # have been run first
@@ -122,25 +121,37 @@ df_t2_med <- time_cleaner(df_t2_med) %>%
 # MERGING
 #----------
 
-# Bind files together and convert to factors for the panel model
+# Bind files together and convert to factors
 
 df_prep <- bind_rows(df_t1_base, df_t1_med, df_t2_base, df_t2_med) %>%
   mutate(minute = as.factor(minute)) %>%
   mutate(state = as.factor(state)) %>%
   mutate(condition = as.factor(condition))
 
-# Reorder to have condition and minute columns as the first two columns for plm index
+#----------------RIBBON VISUALISATION--------------------
 
-df_prep <- df_prep[,c(4,2,5,3,1)]
+ribbon_prep <- df_prep %>%
+  group_by(minute, state, condition) %>%
+  summarise(avg = mean(value),
+            the_lower = min(value),
+            the_upper = max(value)) %>%
+  ungroup() %>%
+  mutate(minute = as.character(minute)) %>%
+  mutate(minute = as.numeric(minute))
 
-#----------------BUILD PANEL REGRESSION MODEL------------
-
-model <- plm(value ~ state, 
-                      data = df_prep,
-                      index = c("condition", "minute"), 
-                      model = "within", 
-                      effect = "twoways")
-
-summary(model)
-
-coeftest(model, vcov = vcovHC, type = "HC1")
+p <- ribbon_prep %>%
+  ggplot(aes(x = minute, y = avg)) +
+  geom_ribbon(aes(ymin = the_lower, ymax = the_upper, x = minute, fill = state), alpha = 0.3) +
+  geom_line(aes(colour = state), stat = "identity", size = 1.25) +
+  labs(title = "Mean value over time by condition",
+       x = "Minute",
+       y = "Value",
+       colour = "State",
+       caption = "Ribbon indicates minimum and maximum value.\nLine indicates average.") +
+  scale_x_continuous(breaks = seq(from = 1, to = 15, by = 1)) +
+  theme_bw() +
+  theme(legend.position = "bottom",
+        panel.grid.minor = element_blank()) +
+  guides(fill = FALSE) +
+  facet_wrap(~condition)
+print(p)
