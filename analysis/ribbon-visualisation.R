@@ -166,10 +166,11 @@ p1 <- df_prep %>%
             stat = "identity", size = 1.25) +
   labs(x = "Minute",
        y = "HF-HRV",
-       colour = "State") +
+       colour = NULL,
+       caption = "Coloured line indicates mean.") +
   scale_x_continuous(breaks = seq(from = 1, to = 15, by = 1)) +
   theme_bw() +
-  theme(legend.position = "bottom",
+  theme(legend.position = "none",
         panel.grid.minor = element_blank()) +
   guides(fill = FALSE) +
   facet_grid(rows = vars(state), cols = vars(condition))
