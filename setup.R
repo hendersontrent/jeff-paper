@@ -13,3 +13,7 @@ library(tidyverse)
 library(janitor)
 library(forecast)
 library(ggpubr)
+
+# Turn off scientific notation
+
+options(scipen = 999)
