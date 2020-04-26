@@ -145,9 +145,9 @@ p <- ribbon_prep %>%
   geom_line(aes(colour = state), stat = "identity", size = 1.25) +
   labs(title = "Mean value over time by condition",
        x = "Minute",
-       y = "Value",
+       y = "HF-HRV",
        colour = "State",
-       caption = "Ribbon indicates minimum and maximum value.\nLine indicates average.") +
+       caption = "Ribbon indicates minimum and maximum values.\nLine indicates average.") +
   scale_x_continuous(breaks = seq(from = 1, to = 15, by = 1)) +
   theme_bw() +
   theme(legend.position = "bottom",
@@ -155,3 +155,22 @@ p <- ribbon_prep %>%
   guides(fill = FALSE) +
   facet_wrap(~condition)
 print(p)
+
+#----------------LINE VISUALISATION----------------------
+
+p1 <- df_prep %>%
+  mutate(minute = as.numeric(minute)) %>%
+  ggplot(aes(x = minute, y = value, group = id)) +
+  geom_line(colour = "#edf0f3", stat = "identity") +
+  geom_line(data = ribbon_prep, aes(group = state, x = minute, y = avg, colour = state), 
+            stat = "identity", size = 1.25) +
+  labs(x = "Minute",
+       y = "HF-HRV",
+       colour = "State") +
+  scale_x_continuous(breaks = seq(from = 1, to = 15, by = 1)) +
+  theme_bw() +
+  theme(legend.position = "bottom",
+        panel.grid.minor = element_blank()) +
+  guides(fill = FALSE) +
+  facet_grid(rows = vars(state), cols = vars(condition))
+print(p1)
