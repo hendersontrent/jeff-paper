@@ -206,9 +206,8 @@ p_bar_data <- p_bar_data %>%
   mutate(state = factor(state, levels = c("Rest", "Meditation")))
 
 sig_chart <- bar_aes(p_bar_data) +
-  labs(title = "Frequency of significant stationarity violations by state and condition",
-       subtitle = "Ljung-Box test for independence was used to measure stationarity",
-       caption = "Lag of log(n) was used to determine lag length, where n = 15.")
+  labs(title = "Ljung-Box",
+       caption = "Lag length = log(n).")
 print(sig_chart)
 
 #----------------AUGMENTED DICKEY-FULLER-------------------
@@ -271,8 +270,7 @@ p_bar_data_adf <- p_check_adf %>%
 # Plot frequency of non-stationarity violations
 
 sig_chart_adf <- bar_aes(p_bar_data_adf) + 
-  labs(title = "Frequency of non-significant stationarity violations by state and condition",
-       subtitle = "Augmented Dickey-Fuller test was used to measure stationarity",
+  labs(title = "Augmented Dickey-Fuller",
        caption = "Lag order = 2.")
 print(sig_chart_adf)
 
@@ -336,6 +334,12 @@ p_bar_data_kpss <- p_check_kpss %>%
 # Plot frequency of non-stationarity violations
 
 sig_chart_kpss <- bar_aes(p_bar_data_kpss) + 
-  labs(title = "Frequency of non-significant stationarity violations by state and condition",
-       subtitle = "Kwiatkowski-Phillips-Schmidt-Shin test was used to measure stationarity")
+  labs(title = "Kwiatkowski-Phillips-Schmidt-Shin")
 print(sig_chart_kpss)
+
+#----------------------------------------------------------
+#----------------SINGLE PLOTTING---------------------------
+#----------------------------------------------------------
+
+ggarrange(sig_chart, sig_chart_adf, sig_chart_kpss,
+          ncol = 2, nrow = 2)
