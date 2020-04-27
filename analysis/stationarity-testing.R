@@ -190,25 +190,91 @@ p_bar_data <- p_check %>%
 
 # Plot frequency of non-stationarity violations
 
-sig_chart <- p_bar_data %>%
-  mutate(state = factor(state, levels = c("Rest", "Meditation"))) %>%
-  ggplot(aes(x = condition, y = counter)) +
-  geom_bar(aes(fill = state), stat = "identity") +
+bar_aes <- function(data){
+  ggplot(data= data, aes(x = condition, y = counter)) +
+    geom_bar(aes(fill = state), stat = "identity") +
+    labs(x = "Condition",
+         y = "Frequency") +
+    theme_bw() +
+    theme(legend.position = "none",
+          panel.grid.minor = element_blank(),
+          panel.grid.major = element_blank()) +
+    facet_wrap(~state)
+}
+
+p_bar_data <- p_bar_data %>%
+  mutate(state = factor(state, levels = c("Rest", "Meditation")))
+
+sig_chart <- bar_aes(p_bar_data) +
   labs(title = "Frequency of significant stationarity violations by state and condition",
        subtitle = "Ljung-Box test for independence was used to measure stationarity",
-       x = "Condition",
-       y = "Frequency",
-       caption = "Lag of log(n) was used to determine lag length, where n = 15.") +
-  theme_bw() +
-  theme(legend.position = "none",
-        panel.grid.minor = element_blank(),
-        panel.grid.major = element_blank()) +
-  facet_wrap(~state)
+       caption = "Lag of log(n) was used to determine lag length, where n = 15.")
 print(sig_chart)
 
 #----------------AUGMENTED DICKEY-FULLER-------------------
 
+# Extract ADF test statistic and p-value for each participant, state and condition combo
 
+b_list <- list()
+for(i in id_list){
+  
+  raw_data <- df_prep %>%
+    filter(id == i)
+  
+  t1_rest <- raw_data %>%
+    filter(condition == "T1") %>%
+    filter(state == "Rest")
+  
+  t1_med <- raw_data %>%
+    filter(condition == "T1") %>%
+    filter(state == "Meditation")
+  
+  t2_rest <- raw_data %>%
+    filter(condition == "T2") %>%
+    filter(state == "Rest")
+  
+  t2_med <- raw_data %>%
+    filter(condition == "T2") %>%
+    filter(state == "Meditation")
+  
+  t1_rest_results <- adf.test(t1_rest$value)
+  t1_med_results <- adf.test(t1_med$value)
+  t2_rest_results <- adf.test(t2_rest$value)
+  t2_med_results <- adf.test(t2_med$value)
+  
+  station_data <- data.frame(id = c(i),
+                             state = c("Rest", "Meditation", "Rest", "Meditation"),
+                             condition = c("T1", "T1", "T2", "T2"),
+                             statistic = c(t1_rest_results$statistic, t1_med_results$statistic,
+                                           t2_rest_results$statistic, t2_med_results$statistic),
+                             p_val = c(t1_rest_results$p.value, t1_med_results$p.value,
+                                       t2_rest_results$p.value, t2_med_results$p.value))
+  
+  b_list[[i]] <- station_data
+  
+}
+
+stationary_data_adf <- rbindlist(b_list, use.names = TRUE)
+
+# See if any p-values are over p > .05 as H0 is "data is not stationary"
+
+p_check_adf <- stationary_data %>%
+  filter(p_val > .05)
+
+# Make into frequency dataframe for bar chart
+
+p_bar_data_adf <- p_check_adf %>%
+  group_by(state, condition) %>%
+  summarise(counter = n()) %>%
+  ungroup()
+
+# Plot frequency of non-stationarity violations
+
+sig_chart_adf <- bar_aes(p_bar_data_adf) + 
+  labs(title = "Frequency of non-significant stationarity violations by state and condition",
+       subtitle = "Augmented Dickey-Fuller test was used to measure stationarity",
+       caption = "ag order = 2.")
+print(sig_chart_adf)
 
 #----------------KPSS METHOD-------------------------------
 
