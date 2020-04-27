@@ -258,7 +258,7 @@ stationary_data_adf <- rbindlist(b_list, use.names = TRUE)
 
 # See if any p-values are over p > .05 as H0 is "data is not stationary"
 
-p_check_adf <- stationary_data %>%
+p_check_adf <- stationary_data_adf %>%
   filter(p_val > .05)
 
 # Make into frequency dataframe for bar chart
@@ -273,9 +273,69 @@ p_bar_data_adf <- p_check_adf %>%
 sig_chart_adf <- bar_aes(p_bar_data_adf) + 
   labs(title = "Frequency of non-significant stationarity violations by state and condition",
        subtitle = "Augmented Dickey-Fuller test was used to measure stationarity",
-       caption = "ag order = 2.")
+       caption = "Lag order = 2.")
 print(sig_chart_adf)
 
 #----------------KPSS METHOD-------------------------------
 
+# Extract ADF test statistic and p-value for each participant, state and condition combo
 
+c_list <- list()
+for(i in id_list){
+  
+  raw_data <- df_prep %>%
+    filter(id == i)
+  
+  t1_rest <- raw_data %>%
+    filter(condition == "T1") %>%
+    filter(state == "Rest")
+  
+  t1_med <- raw_data %>%
+    filter(condition == "T1") %>%
+    filter(state == "Meditation")
+  
+  t2_rest <- raw_data %>%
+    filter(condition == "T2") %>%
+    filter(state == "Rest")
+  
+  t2_med <- raw_data %>%
+    filter(condition == "T2") %>%
+    filter(state == "Meditation")
+  
+  t1_rest_results <- kpss.test(t1_rest$value, null = "Trend")
+  t1_med_results <- kpss.test(t1_med$value, null = "Trend")
+  t2_rest_results <- kpss.test(t2_rest$value, null = "Trend")
+  t2_med_results <- kpss.test(t2_med$value, null = "Trend")
+  
+  station_data <- data.frame(id = c(i),
+                             state = c("Rest", "Meditation", "Rest", "Meditation"),
+                             condition = c("T1", "T1", "T2", "T2"),
+                             statistic = c(t1_rest_results$statistic, t1_med_results$statistic,
+                                           t2_rest_results$statistic, t2_med_results$statistic),
+                             p_val = c(t1_rest_results$p.value, t1_med_results$p.value,
+                                       t2_rest_results$p.value, t2_med_results$p.value))
+  
+  c_list[[i]] <- station_data
+  
+}
+
+stationary_data_kpss <- rbindlist(c_list, use.names = TRUE)
+
+# See if any p-values are under p < .05 as H0 is "data is trend stationary"
+
+p_check_kpss <- stationary_data_kpss %>%
+  filter(p_val <= .05)
+
+# Make into frequency dataframe for bar chart
+
+p_bar_data_kpss <- p_check_kpss %>%
+  group_by(state, condition) %>%
+  summarise(counter = n()) %>%
+  ungroup()
+
+# Plot frequency of non-stationarity violations
+
+sig_chart_kpss <- bar_aes(p_bar_data_kpss) + 
+  labs(title = "Frequency of non-significant stationarity violations by state and condition",
+       subtitle = "Kwiatkowski-Phillips-Schmidt-Shin test was used to measure stationarity")
+print(sig_chart_kpss)
