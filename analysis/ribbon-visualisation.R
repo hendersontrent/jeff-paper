@@ -1,9 +1,6 @@
 #-----------------------------------------
 # This script aims to build a ribbon plot
-# to show variability over time. Also
-# includes stationarity testing as it
-# uses the same dataframe. This will be
-# modularised in time.
+# to show variability over time.
 #
 # NOTE: This script requires setup.R to
 # have been run first
@@ -178,81 +175,3 @@ p1 <- df_prep %>%
   guides(fill = FALSE) +
   facet_grid(rows = vars(state), cols = vars(condition))
 print(p1)
-
-#----------------STATIONARITY TESTING--------------------
-
-id_list <- unique(df_prep$id)
-lag.length <- as.integer(log(15)) # One rule of thumb for lags is ln * number of time points
-
-# Extract Ljung-Box test statistic and p-value for each participant, state and condition combo
-
-a_list <- list()
-for(i in id_list){
-
-raw_data <- df_prep %>%
-  filter(id == i)
-
-t1_rest <- raw_data %>%
-  filter(condition == "T1") %>%
-  filter(state == "Rest")
-
-t1_med <- raw_data %>%
-  filter(condition == "T1") %>%
-  filter(state == "Meditation")
-
-t2_rest <- raw_data %>%
-  filter(condition == "T2") %>%
-  filter(state == "Rest")
-
-t2_med <- raw_data %>%
-  filter(condition == "T2") %>%
-  filter(state == "Meditation")
-
-t1_rest_results <- Box.test(t1_rest$value, lag = lag.length, type = "Ljung-Box")
-t1_med_results <- Box.test(t1_med$value, lag = lag.length, type = "Ljung-Box")
-t2_rest_results <- Box.test(t2_rest$value, lag = lag.length, type = "Ljung-Box")
-t2_med_results <- Box.test(t2_med$value, lag = lag.length, type = "Ljung-Box")
-
-station_data <- data.frame(id = c(i),
-                           state = c("Rest", "Meditation", "Rest", "Meditation"),
-                           condition = c("T1", "T1", "T2", "T2"),
-                           statistic = c(t1_rest_results$statistic, t1_med_results$statistic,
-                                         t2_rest_results$statistic, t2_med_results$statistic),
-                           p_val = c(t1_rest_results$p.value, t1_med_results$p.value,
-                                     t2_rest_results$p.value, t2_med_results$p.value))
-
-a_list[[i]] <- station_data
-
-}
-
-stationary_data <- rbindlist(a_list, use.names = TRUE)
-
-# See if any p-values are under p < .05
-
-p_check <- stationary_data %>%
-  filter(p_val <= .05)
-
-# Make into frequency dataframe for bar chart
-
-p_bar_data <- p_check %>%
-  group_by(state, condition) %>%
-  summarise(counter = n()) %>%
-  ungroup()
-
-# Plot frequency of non-stationarity violations
-
-sig_chart <- p_bar_data %>%
-  mutate(state = factor(state, levels = c("Rest", "Meditation"))) %>%
-  ggplot(aes(x = condition, y = counter)) +
-  geom_bar(aes(fill = state), stat = "identity") +
-  labs(title = "Frequency of significant stationarity violations by state and condition",
-       subtitle = "Ljung-Box test for independence was used to measure stationarity",
-       x = "Condition",
-       y = "Frequency",
-       caption = "Lag of log(n) was used to determine lag length, where n = 15.") +
-  theme_bw() +
-  theme(legend.position = "none",
-        panel.grid.minor = element_blank(),
-        panel.grid.major = element_blank()) +
-  facet_wrap(~state)
-print(sig_chart)
