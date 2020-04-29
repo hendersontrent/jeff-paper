@@ -147,6 +147,11 @@ summary(model$mer)
 plot(model$gam, pages = 1)
 plot(model$mer, pages = 1)
 
+# Check GAM residuals
+
+par(mfrow = c(2,2))
+gam.check(model$gam)
+
 # Exploratory plot - potentially not as useful as the above due to point structure
 
 p <- getViz(model$gam)
