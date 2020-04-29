@@ -15,6 +15,7 @@ library(forecast)
 library(ggpubr)
 library(tseries)
 library(gamm4)
+library(mgcViz)
 
 # Turn off scientific notation
 

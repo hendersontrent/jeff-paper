@@ -146,3 +146,14 @@ summary(model$mer)
 
 plot(model$gam, pages = 1)
 plot(model$mer, pages = 1)
+
+# Exploratory plot - potentially not as useful as the above due to point structure
+
+p <- getViz(model$gam)
+
+p1 <- plot(sm(p, 1))
+p1 + l_fitLine(colour = "red") + 
+  l_rug(mapping = aes(x = x, y = y), alpha = 0.8) +
+  l_ciLine(mul = 5, colour = "blue", linetype = 2) + 
+  l_points(shape = 19, size = 1, alpha = 0.1) + 
+  theme_classic()
