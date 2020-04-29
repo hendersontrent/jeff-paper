@@ -14,6 +14,7 @@ library(janitor)
 library(forecast)
 library(ggpubr)
 library(tseries)
+library(gamm4)
 
 # Turn off scientific notation
 
