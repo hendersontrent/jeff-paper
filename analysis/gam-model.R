@@ -138,6 +138,22 @@ df_ind <- bind_rows(df_t1_base, df_t1_med, df_t2_base, df_t2_med)
 
 #-------------------BUILD GAM MODEL----------------
 
+#------------------------
+# EXPLICITLY NESTED MODEL
+#------------------------
+
+model_adv <- gamm4(value ~ s(minute), random = ~ (1|condition/state/id), 
+                   data = df_ind)
+summary(model_adv$gam)
+summary(model_adv$mer)
+
+plot(model_adv$gam, pages = 1)
+plot(model_adv$mer, pages = 1)
+
+#------------------------
+# NON-NESTED MODELS
+#------------------------
+
 model <- gamm4(value ~ s(minute) + condition + state, data = df_ind, random = ~ (1|id),
                REML = TRUE)
 
