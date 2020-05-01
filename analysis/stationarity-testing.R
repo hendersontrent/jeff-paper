@@ -1,6 +1,6 @@
 #-----------------------------------------
 # This script aims to build stationarity 
-# testing using 3 methods.
+# testing using the Dickey-Fuller test
 #
 # NOTE: This script requires setup.R to
 # have been run first
@@ -128,12 +128,12 @@ df_prep <- bind_rows(df_t1_base, df_t1_med, df_t2_base, df_t2_med) %>%
   mutate(state = as.factor(state)) %>%
   mutate(condition = as.factor(condition))
 
-#----------------LJUNG-BOX METHOD--------------------------
+#----------------DICKEY-FULLER-------------------
 
 id_list <- unique(df_prep$id)
-lag.length <- as.integer(log(15)) # One rule of thumb for lags is ln * number of time points
 
-# Extract Ljung-Box test statistic and p-value for each participant, state and condition combo
+# Extract DF test statistic and p-value for each participant, state and condition combo
+# DF tests for the presence of a unit root
 
 a_list <- list()
 for(i in id_list){
@@ -157,10 +157,17 @@ for(i in id_list){
     filter(condition == "T2") %>%
     filter(state == "Meditation")
   
-  t1_rest_results <- Box.test(t1_rest$value, lag = lag.length, type = "Ljung-Box")
-  t1_med_results <- Box.test(t1_med$value, lag = lag.length, type = "Ljung-Box")
-  t2_rest_results <- Box.test(t2_rest$value, lag = lag.length, type = "Ljung-Box")
-  t2_med_results <- Box.test(t2_med$value, lag = lag.length, type = "Ljung-Box")
+  # Defaults to Dickey Fuller from ADF at 0 lags
+  # This is more appropriate given lack of data complexity here
+  
+  t1_rest_results <- adf.test(t1_rest$value, k = 0,
+                              alternative = c("stationary"))
+  t1_med_results <- adf.test(t1_med$value, k = 0,
+                             alternative = c("stationary"))
+  t2_rest_results <- adf.test(t2_rest$value, k = 0,
+                              alternative = c("stationary"))
+  t2_med_results <- adf.test(t2_med$value, k = 0,
+                             alternative = c("stationary"))
   
   station_data <- data.frame(id = c(i),
                              state = c("Rest", "Meditation", "Rest", "Meditation"),
@@ -174,86 +181,7 @@ for(i in id_list){
   
 }
 
-stationary_data <- rbindlist(a_list, use.names = TRUE)
-
-# See if any p-values are under p < .05
-
-p_check <- stationary_data %>%
-  filter(p_val <= .05)
-
-# Make into frequency dataframe for bar chart
-
-p_bar_data <- p_check %>%
-  group_by(state, condition) %>%
-  summarise(counter = n()) %>%
-  ungroup()
-
-# Plot frequency of non-stationarity violations
-
-bar_aes <- function(data){
-  ggplot(data= data, aes(x = condition, y = counter)) +
-    geom_bar(aes(fill = state), stat = "identity") +
-    labs(x = "Condition",
-         y = "Frequency") +
-    theme_bw() +
-    theme(legend.position = "none",
-          panel.grid.minor = element_blank(),
-          panel.grid.major = element_blank()) +
-    facet_wrap(~state)
-}
-
-p_bar_data <- p_bar_data %>%
-  mutate(state = factor(state, levels = c("Rest", "Meditation")))
-
-sig_chart <- bar_aes(p_bar_data) +
-  labs(title = "Ljung-Box",
-       caption = "Lag length = log(n).")
-print(sig_chart)
-
-#----------------AUGMENTED DICKEY-FULLER-------------------
-
-# Extract ADF test statistic and p-value for each participant, state and condition combo
-
-b_list <- list()
-for(i in id_list){
-  
-  raw_data <- df_prep %>%
-    filter(id == i)
-  
-  t1_rest <- raw_data %>%
-    filter(condition == "T1") %>%
-    filter(state == "Rest")
-  
-  t1_med <- raw_data %>%
-    filter(condition == "T1") %>%
-    filter(state == "Meditation")
-  
-  t2_rest <- raw_data %>%
-    filter(condition == "T2") %>%
-    filter(state == "Rest")
-  
-  t2_med <- raw_data %>%
-    filter(condition == "T2") %>%
-    filter(state == "Meditation")
-  
-  t1_rest_results <- adf.test(t1_rest$value)
-  t1_med_results <- adf.test(t1_med$value)
-  t2_rest_results <- adf.test(t2_rest$value)
-  t2_med_results <- adf.test(t2_med$value)
-  
-  station_data <- data.frame(id = c(i),
-                             state = c("Rest", "Meditation", "Rest", "Meditation"),
-                             condition = c("T1", "T1", "T2", "T2"),
-                             statistic = c(t1_rest_results$statistic, t1_med_results$statistic,
-                                           t2_rest_results$statistic, t2_med_results$statistic),
-                             p_val = c(t1_rest_results$p.value, t1_med_results$p.value,
-                                       t2_rest_results$p.value, t2_med_results$p.value))
-  
-  b_list[[i]] <- station_data
-  
-}
-
-stationary_data_adf <- rbindlist(b_list, use.names = TRUE)
+stationary_data_adf <- rbindlist(a_list, use.names = TRUE)
 
 # See if any p-values are over p > .05 as H0 is "data is not stationary"
 
@@ -262,84 +190,58 @@ p_check_adf <- stationary_data_adf %>%
 
 # Make into frequency dataframe for bar chart
 
+total_n <- length(id_list)
+
 p_bar_data_adf <- p_check_adf %>%
   group_by(state, condition) %>%
   summarise(counter = n()) %>%
-  ungroup()
+  ungroup() %>%
+  mutate(prop_counter = round((counter / total_n)*100, digits = 2))
 
 # Plot frequency of non-stationarity violations
 
-sig_chart_adf <- bar_aes(p_bar_data_adf) + 
-  labs(title = "Augmented Dickey-Fuller",
-       caption = "Lag order = 2.")
+sig_chart_adf <- p_bar_data_adf %>%
+  ggplot(aes(x = condition, y = prop_counter)) +
+  geom_bar(aes(fill = state), stat = "identity") +
+  labs(title = "Dickey-Fuller stationarity violations",
+       x = "Condition",
+       y = "Proportion of participants violated") +
+  theme_bw() +
+  scale_y_continuous(limits = c(0,80),
+                     breaks = c(0,20,40,60,80),
+                     labels = function(x) paste0(x,"%")) +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank()) +
+  facet_wrap(~state)
 print(sig_chart_adf)
 
-#----------------KPSS METHOD-------------------------------
+#----------------STANDARD DEVIATION-------------------
 
-# Extract ADF test statistic and p-value for each participant, state and condition combo
-
-c_list <- list()
-for(i in id_list){
-  
-  raw_data <- df_prep %>%
-    filter(id == i)
-  
-  t1_rest <- raw_data %>%
-    filter(condition == "T1") %>%
-    filter(state == "Rest")
-  
-  t1_med <- raw_data %>%
-    filter(condition == "T1") %>%
-    filter(state == "Meditation")
-  
-  t2_rest <- raw_data %>%
-    filter(condition == "T2") %>%
-    filter(state == "Rest")
-  
-  t2_med <- raw_data %>%
-    filter(condition == "T2") %>%
-    filter(state == "Meditation")
-  
-  t1_rest_results <- kpss.test(t1_rest$value, null = "Trend")
-  t1_med_results <- kpss.test(t1_med$value, null = "Trend")
-  t2_rest_results <- kpss.test(t2_rest$value, null = "Trend")
-  t2_med_results <- kpss.test(t2_med$value, null = "Trend")
-  
-  station_data <- data.frame(id = c(i),
-                             state = c("Rest", "Meditation", "Rest", "Meditation"),
-                             condition = c("T1", "T1", "T2", "T2"),
-                             statistic = c(t1_rest_results$statistic, t1_med_results$statistic,
-                                           t2_rest_results$statistic, t2_med_results$statistic),
-                             p_val = c(t1_rest_results$p.value, t1_med_results$p.value,
-                                       t2_rest_results$p.value, t2_med_results$p.value))
-  
-  c_list[[i]] <- station_data
-  
-}
-
-stationary_data_kpss <- rbindlist(c_list, use.names = TRUE)
-
-# See if any p-values are under p < .05 as H0 is "data is trend stationary"
-
-p_check_kpss <- stationary_data_kpss %>%
-  filter(p_val <= .05)
-
-# Make into frequency dataframe for bar chart
-
-p_bar_data_kpss <- p_check_kpss %>%
-  group_by(state, condition) %>%
-  summarise(counter = n()) %>%
+dev_data <- df_prep %>%
+  group_by(id, state, condition) %>%
+  summarise(avg = mean(value),
+            std_dev = sd(value)) %>%
   ungroup()
 
-# Plot frequency of non-stationarity violations
+#---------------------------
+# Produce Cleveland Dot Plot
+#---------------------------
 
-sig_chart_kpss <- bar_aes(p_bar_data_kpss) + 
-  labs(title = "Kwiatkowski-Phillips-Schmidt-Shin")
-print(sig_chart_kpss)
-
-#----------------------------------------------------------
-#----------------SINGLE PLOTTING---------------------------
-#----------------------------------------------------------
-
-ggarrange(sig_chart, sig_chart_adf, sig_chart_kpss,
-          ncol = 2, nrow = 2)
+dev_data %>%
+  mutate(id = as.factor(id),
+         state = factor(state, levels = c("Rest", "Meditation"))) %>%
+  ggplot(aes(x = id, y = std_dev)) +
+  geom_line(aes(group = id)) +
+  geom_point(aes(colour = state)) +
+  labs(title = "Time series standard deviation in HR-HRV",
+       x = "Participant ID",
+       y = "HR-HRV standard deviation",
+       colour = "State") +
+  scale_x_discrete(breaks = seq(from = 1, to = 40, by = 1)) +
+  coord_flip() +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "bottom") +
+  facet_wrap(~condition)
