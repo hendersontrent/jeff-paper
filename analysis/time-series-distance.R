@@ -128,10 +128,31 @@ df_ind <- bind_rows(df_t1_base, df_t1_med, df_t2_base, df_t2_med)
 
 # Compute correlation distances based on Pearson's correlation
 
-distances <- df_ind %>%
+pearson_distances <- df_ind %>%
   spread(key = state, value = value) %>%
   group_by(id, condition) %>%
   summarise(the_dist = CorDistance(Meditation, Rest)) %>%
   group_by(condition) %>%
-  summarise(avg_dist = mean(the_dist)) %>%
-  ungroup()
+  summarise(avg_dist = round(mean(the_dist), digits = 2)) %>%
+  ungroup() %>%
+  mutate(Measure = "Pearson's Correlation")
+
+# Compute correlation distances based on Euclidean distance
+
+euclid_distances <- df_ind %>%
+  spread(key = state, value = value) %>%
+  group_by(id, condition) %>%
+  summarise(the_dist = EuclideanDistance(Meditation, Rest)) %>%
+  group_by(condition) %>%
+  summarise(avg_dist = round(mean(the_dist), digits = 2)) %>%
+  ungroup() %>%
+  mutate(Measure = "Euclidean Distance")
+
+# Merge and present as a table
+
+distances <- bind_rows(pearson_distances, euclid_distances) %>%
+  rename(Condition = condition) %>%
+  spread(key = Condition, value = avg_dist)
+
+dist_table <- autofit(flextable(distances))
+dist_table
