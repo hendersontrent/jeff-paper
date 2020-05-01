@@ -135,7 +135,7 @@ pearson_distances <- df_ind %>%
   group_by(condition) %>%
   summarise(avg_dist = round(mean(the_dist), digits = 2)) %>%
   ungroup() %>%
-  mutate(Measure = "Pearson's Correlation")
+  mutate("Distance Measure" = "Pearson's Correlation")
 
 # Compute correlation distances based on Euclidean distance
 
@@ -146,7 +146,7 @@ euclid_distances <- df_ind %>%
   group_by(condition) %>%
   summarise(avg_dist = round(mean(the_dist), digits = 2)) %>%
   ungroup() %>%
-  mutate(Measure = "Euclidean Distance")
+  mutate("Distance Measure" = "Euclidean Distance")
 
 # Merge and present as a table
 
