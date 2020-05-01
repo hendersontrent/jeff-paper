@@ -215,3 +215,33 @@ sig_chart_adf <- p_bar_data_adf %>%
         panel.grid.major = element_blank()) +
   facet_wrap(~state)
 print(sig_chart_adf)
+
+#----------------STANDARD DEVIATION-------------------
+
+dev_data <- df_prep %>%
+  group_by(id, state, condition) %>%
+  summarise(avg = mean(value),
+            std_dev = sd(value)) %>%
+  ungroup()
+
+#---------------------------
+# Produce Cleveland Dot Plot
+#---------------------------
+
+dev_data %>%
+  mutate(id = as.factor(id),
+         state = factor(state, levels = c("Rest", "Meditation"))) %>%
+  ggplot(aes(x = id, y = std_dev)) +
+  geom_line(aes(group = id)) +
+  geom_point(aes(colour = state)) +
+  labs(title = "Time series standard deviation in HR-HRV",
+       x = "Participant ID",
+       y = "HR-HRV standard deviation",
+       colour = "State") +
+  scale_x_discrete(breaks = seq(from = 1, to = 40, by = 1)) +
+  coord_flip() +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "bottom") +
+  facet_wrap(~condition)
