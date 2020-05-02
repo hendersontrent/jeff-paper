@@ -205,7 +205,7 @@ sig_chart_adf <- p_bar_data_adf %>%
   geom_bar(aes(fill = state), stat = "identity") +
   labs(title = "Dickey-Fuller stationarity violations",
        x = "Condition",
-       y = "Proportion of participants violated") +
+       y = "Proportion of participants who are non-stationary") +
   theme_bw() +
   scale_y_continuous(limits = c(0,80),
                      breaks = c(0,20,40,60,80),
@@ -228,7 +228,7 @@ dev_data <- df_prep %>%
 # Produce Cleveland Dot Plot
 #---------------------------
 
-dev_data %>%
+p <- dev_data %>%
   mutate(id = as.factor(id),
          state = factor(state, levels = c("Rest", "Meditation"))) %>%
   ggplot(aes(x = id, y = std_dev)) +
@@ -245,3 +245,4 @@ dev_data %>%
         panel.grid.minor = element_blank(),
         legend.position = "bottom") +
   facet_wrap(~condition)
+print(p)
