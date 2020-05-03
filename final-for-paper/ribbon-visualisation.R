@@ -158,20 +158,26 @@ print(p)
 
 #----------------LINE VISUALISATION----------------------
 
+the_palette <- c("#D53E4F", "#FDAE61") # Spectral palette Jeff used initially
+
 p1 <- df_prep %>%
   mutate(minute = as.numeric(minute)) %>%
   ggplot(aes(x = minute, y = value, group = id)) +
   geom_line(colour = "#edf0f3", stat = "identity") +
   geom_line(data = ribbon_prep, aes(group = state, x = minute, y = avg, colour = state), 
-            stat = "identity", size = 1.25) +
+            stat = "identity", size = 1.25, alpha = 0.8) +
   labs(x = "Minute",
        y = "HF-HRV",
        colour = NULL,
        caption = "Coloured line indicates mean.") +
   scale_x_continuous(breaks = seq(from = 1, to = 15, by = 1)) +
+  scale_y_continuous(limits = c(1,10),
+                     breaks = seq(from = 1, to = 10, by = 1)) +
+  scale_colour_manual(values = the_palette) +
   theme_bw() +
   theme(legend.position = "none",
-        panel.grid.minor = element_blank()) +
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank()) +
   guides(fill = FALSE) +
   facet_grid(rows = vars(state), cols = vars(condition))
 print(p1)
