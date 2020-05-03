@@ -200,11 +200,13 @@ p_bar_data_adf <- p_check_adf %>%
 
 # Plot frequency of non-stationarity violations
 
+the_palette <- c("#D53E4F", "#FDAE61") # Spectral palette Jeff used initially
+
 sig_chart_adf <- p_bar_data_adf %>%
-  ggplot(aes(x = condition, y = prop_counter)) +
-  geom_bar(aes(fill = state), stat = "identity") +
+  ggplot(aes(x = state, y = prop_counter)) +
+  geom_bar(aes(fill = condition), stat = "identity", alpha = 0.8) +
   labs(title = "Dickey-Fuller stationarity violations",
-       x = "Condition",
+       x = "State",
        y = "Proportion of participants who are non-stationary") +
   theme_bw() +
   scale_y_continuous(limits = c(0,80),
@@ -213,7 +215,8 @@ sig_chart_adf <- p_bar_data_adf %>%
   theme(legend.position = "none",
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank()) +
-  facet_wrap(~state)
+  scale_fill_manual(values = the_palette) +
+  facet_wrap(~condition)
 print(sig_chart_adf)
 
 #----------------STANDARD DEVIATION-------------------
@@ -244,5 +247,6 @@ p <- dev_data %>%
   theme(panel.grid.major.x = element_blank(),
         panel.grid.minor = element_blank(),
         legend.position = "bottom") +
+  scale_colour_manual(values = the_palette) +
   facet_wrap(~condition)
 print(p)
