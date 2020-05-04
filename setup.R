@@ -19,6 +19,7 @@ library(mgcViz)
 library(TSdist)
 library(flextable)
 library(data.table)
+library(Cairo)
 
 # Turn off scientific notation
 

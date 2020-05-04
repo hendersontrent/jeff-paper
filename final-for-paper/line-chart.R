@@ -128,8 +128,6 @@ df_prep <- bind_rows(df_t1_base, df_t1_med, df_t2_base, df_t2_med) %>%
   mutate(state = as.factor(state)) %>%
   mutate(condition = as.factor(condition))
 
-#----------------RIBBON VISUALISATION--------------------
-
 ribbon_prep <- df_prep %>%
   group_by(minute, state, condition) %>%
   summarise(avg = mean(value),
@@ -139,27 +137,11 @@ ribbon_prep <- df_prep %>%
   mutate(minute = as.character(minute)) %>%
   mutate(minute = as.numeric(minute))
 
-p <- ribbon_prep %>%
-  ggplot(aes(x = minute, y = avg)) +
-  geom_ribbon(aes(ymin = the_lower, ymax = the_upper, x = minute, fill = state), alpha = 0.3) +
-  geom_line(aes(colour = state), stat = "identity", size = 1.25) +
-  labs(title = "Mean value over time by condition",
-       x = "Minute",
-       y = "HF-HRV",
-       colour = "State",
-       caption = "Ribbon indicates minimum and maximum values.\nLine indicates average.") +
-  scale_x_continuous(breaks = seq(from = 1, to = 15, by = 1)) +
-  theme_bw() +
-  theme(legend.position = "bottom",
-        panel.grid.minor = element_blank()) +
-  guides(fill = FALSE) +
-  facet_wrap(~condition)
-print(p)
-
 #----------------LINE VISUALISATION----------------------
 
 the_palette <- c("#D53E4F", "#FDAE61") # Spectral palette Jeff used initially
 
+CairoPNG("output/line-chart-final.png", 600,400)
 p1 <- df_prep %>%
   mutate(minute = as.numeric(minute)) %>%
   ggplot(aes(x = minute, y = value, group = id)) +
@@ -167,7 +149,7 @@ p1 <- df_prep %>%
   geom_line(data = ribbon_prep, aes(group = state, x = minute, y = avg, colour = state), 
             stat = "identity", size = 1.25, alpha = 0.8) +
   labs(x = "Minute",
-       y = "HF-HRV",
+       y = "n.u. HF-HRV",
        colour = NULL,
        caption = "Coloured line indicates mean.") +
   scale_x_continuous(breaks = seq(from = 1, to = 15, by = 1)) +
@@ -181,3 +163,4 @@ p1 <- df_prep %>%
   guides(fill = FALSE) +
   facet_grid(rows = vars(state), cols = vars(condition))
 print(p1)
+dev.off()
