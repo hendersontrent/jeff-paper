@@ -133,6 +133,6 @@ print(agg_plot)
 
 #---------------OUTPUT-------------
 
-CairoPNG("output/")
+CairoPNG("output/average-line-chart.png", 600, 400)
 print(agg_plot)
 dev.off()
