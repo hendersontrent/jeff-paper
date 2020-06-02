@@ -115,7 +115,7 @@ pct_data <- merged_data %>%
 agg_plot <- merged_data %>%
   ggplot(aes(x = minute, y = value)) +
   geom_line(aes(colour = condition), stat = "identity", size = 1.25) +
-  geom_label(data = pct_data, aes(x = 11.6, y = 9.5, label = paste0("Mean % diff\nbetween rest and\nmeditation = ",pct_diff,"%")), 
+  geom_label(data = pct_data, aes(x = 11.6, y = 9.5, label = paste0("Mean % difference\nbetween rest and\nmeditation = ",pct_diff,"%")), 
             colour = "#3288BD") +
   labs(x = "Minute",
        y = "HF-HRV",
