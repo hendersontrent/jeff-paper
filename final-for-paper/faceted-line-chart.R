@@ -115,14 +115,14 @@ pct_data <- merged_data %>%
 agg_plot <- merged_data %>%
   ggplot(aes(x = minute, y = value)) +
   geom_line(aes(colour = condition), stat = "identity", size = 1.25) +
-  geom_label(data = pct_data, aes(x = 11.6, y = 9.5, label = paste0("Mean % difference\nbetween rest and\nmeditation = ",pct_diff,"%")), 
+  geom_label(data = pct_data, aes(x = 11.6, y = 5.05, label = paste0("Mean % difference\nbetween rest and\nmeditation = ",pct_diff,"%")), 
             colour = "#3288BD") +
   labs(x = "Minute",
        y = "HF-HRV",
        colour = NULL) +
   scale_x_continuous(breaks = seq(from = 1, to = 15, by = 1)) +
-  scale_y_continuous(limits = c(1,10),
-                     breaks = seq(from = 1, to = 10, by = 1)) +
+  scale_y_continuous(limits = c(5,5.8),
+                     breaks = seq(from = 5, to = 5.8, by = 0.1)) +
   scale_colour_manual(values = the_palette) +
   theme_bw() +
   theme(legend.position = "bottom",
