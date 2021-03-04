@@ -49,22 +49,7 @@ df_t1_med <- d %>%
 df_t1_med <- time_cleaner(df_t1_med) %>%
   mutate(condition = "T1") %>%
   mutate(state = "Meditation") %>%
-  mutate(minute = case_when(
-    minute == 16 ~ 1,
-    minute == 17 ~ 2,
-    minute == 18 ~ 3,
-    minute == 19 ~ 4,
-    minute == 20 ~ 5,
-    minute == 21 ~ 6,
-    minute == 22 ~ 7,
-    minute == 23 ~ 8,
-    minute == 24 ~ 9,
-    minute == 25 ~ 10,
-    minute == 26 ~ 11,
-    minute == 27 ~ 12,
-    minute == 28 ~ 13,
-    minute == 29 ~ 14,
-    minute == 30 ~ 15)) # Recode into 1:15 to make equivalent - probably a better way though
+  mutate(minute = minute-15)
 
 # T2 Rest
 
@@ -75,22 +60,7 @@ df_t2_base <- d %>%
 df_t2_base <- time_cleaner(df_t2_base) %>%
   mutate(condition = "T2") %>%
   mutate(state = "Rest") %>%
-  mutate(minute = case_when(
-    minute == 31 ~ 1,
-    minute == 32 ~ 2,
-    minute == 33 ~ 3,
-    minute == 34 ~ 4,
-    minute == 35 ~ 5,
-    minute == 36 ~ 6,
-    minute == 37 ~ 7,
-    minute == 38 ~ 8,
-    minute == 39 ~ 9,
-    minute == 40 ~ 10,
-    minute == 41 ~ 11,
-    minute == 42 ~ 12,
-    minute == 43 ~ 13,
-    minute == 44 ~ 14,
-    minute == 45 ~ 15))
+  mutate(minute = minute-(2*15))
 
 # T2 Meditation
 
@@ -101,22 +71,7 @@ df_t2_med <- d %>%
 df_t2_med <- time_cleaner(df_t2_med) %>%
   mutate(condition = "T2") %>%
   mutate(state = "Meditation") %>%
-  mutate(minute = case_when(
-    minute == 46 ~ 1,
-    minute == 47 ~ 2,
-    minute == 48 ~ 3,
-    minute == 49 ~ 4,
-    minute == 50 ~ 5,
-    minute == 51 ~ 6,
-    minute == 52 ~ 7,
-    minute == 53 ~ 8,
-    minute == 54 ~ 9,
-    minute == 55 ~ 10,
-    minute == 56 ~ 11,
-    minute == 57 ~ 12,
-    minute == 58 ~ 13,
-    minute == 59 ~ 14,
-    minute == 60 ~ 15))
+  mutate(minute = minute-(3*15))
 
 #----------
 # MERGING
